@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { User, Mail, Lock, Moon, Sun } from 'lucide-react';
+import { User, Lock, Moon, Sun } from 'lucide-react';
 
 const LoginPage = ({ onLogin, darkMode, toggleDarkMode }) => {
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
     password: ''
   });
   const [errors, setErrors] = useState({});
@@ -32,16 +31,8 @@ const LoginPage = ({ onLogin, darkMode, toggleDarkMode }) => {
       newErrors.name = 'Name is required';
     }
     
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
-    }
-    
     if (!formData.password.trim()) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
     }
     
     return newErrors;
@@ -58,16 +49,40 @@ const LoginPage = ({ onLogin, darkMode, toggleDarkMode }) => {
 
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Login data:', formData);
-      // For now, automatically log in the user
-      onLogin({
-        name: formData.name,
-        email: formData.email
+    try {
+      const response = await fetch('http://127.0.0.1:8000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.name, 
+          password: formData.password
+        }),
       });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log('Login successful:', data);
+        onLogin({
+          name: data.username,
+          message: data.message
+        });
+      } else {
+        // Handle login errors
+        setErrors({ 
+          general: data.detail || 'Login failed. Please check your credentials.' 
+        });
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setErrors({ 
+        general: 'Network error. Please try again later.' 
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -102,23 +117,6 @@ const LoginPage = ({ onLogin, darkMode, toggleDarkMode }) => {
               placeholder="Enter your full name"
             />
             {errors.name && <span className="error-message">{errors.name}</span>}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="email">
-              <Mail size={18} />
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className={errors.email ? 'error' : ''}
-              placeholder="Enter your email"
-            />
-            {errors.email && <span className="error-message">{errors.email}</span>}
           </div>
 
           <div className="form-group">

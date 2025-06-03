@@ -9,10 +9,65 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   background-color: #f9fafb;
   color: #1f2937;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .App {
   min-height: 100vh;
+  transition: all 0.3s ease;
+}
+
+/* Dark Mode Styles */
+.App.dark-mode {
+  background-color: #111827;
+  color: #f9fafb;
+}
+
+.App.dark-mode body {
+  background-color: #111827;
+  color: #f9fafb;
+}
+
+/* Dark Mode Toggle Button */
+.dark-mode-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.dark-mode-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.header-toggle {
+  position: static !important;
+  width: 36px !important;
+  height: 36px !important;
+  background: transparent !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.App.dark-mode .header-toggle {
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+.App.dark-mode .header-toggle:hover {
+  background: #374151 !important;
 }
 
 /* Login Page Styles */
@@ -23,6 +78,11 @@ body {
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.App.dark-mode .login-container {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
 }
 
 .login-card {
@@ -32,6 +92,12 @@ body {
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 400px;
+  transition: all 0.3s ease;
+}
+
+.App.dark-mode .login-card {
+  background: #1f2937;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
 }
 
 .login-header {
@@ -44,11 +110,21 @@ body {
   font-weight: 700;
   color: #1f2937;
   margin-bottom: 8px;
+  transition: color 0.3s ease;
+}
+
+.App.dark-mode .login-header h1 {
+  color: #f9fafb;
 }
 
 .login-header p {
   color: #6b7280;
   font-size: 16px;
+  transition: color 0.3s ease;
+}
+
+.App.dark-mode .login-header p {
+  color: #9ca3af;
 }
 
 .login-form {
@@ -70,6 +146,11 @@ body {
   font-weight: 500;
   color: #374151;
   font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.App.dark-mode .form-group label {
+  color: #d1d5db;
 }
 
 .form-group input {
@@ -77,7 +158,15 @@ body {
   border: 2px solid #e5e7eb;
   border-radius: 8px;
   font-size: 16px;
-  transition: border-color 0.2s ease;
+  background: white;
+  color: #1f2937;
+  transition: all 0.2s ease;
+}
+
+.App.dark-mode .form-group input {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
 }
 
 .form-group input:focus {
@@ -86,8 +175,20 @@ body {
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+.App.dark-mode .form-group input:focus {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
 .form-group input.error {
   border-color: #ef4444;
+}
+
+.form-group input::placeholder {
+  color: #9ca3af;
+}
+
+.App.dark-mode .form-group input::placeholder {
+  color: #6b7280;
 }
 
 .error-message {
@@ -125,6 +226,11 @@ body {
   flex-direction: column;
   height: 100vh;
   background-color: #ffffff;
+  transition: background-color 0.3s ease;
+}
+
+.App.dark-mode .chat-container {
+  background-color: #111827;
 }
 
 .chat-header {
@@ -132,6 +238,13 @@ body {
   border-bottom: 1px solid #e5e7eb;
   padding: 16px 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.App.dark-mode .chat-header {
+  background: #1f2937;
+  border-bottom-color: #374151;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .header-content {
@@ -146,6 +259,11 @@ body {
   font-size: 24px;
   font-weight: 700;
   color: #1f2937;
+  transition: color 0.3s ease;
+}
+
+.App.dark-mode .header-content h1 {
+  color: #f9fafb;
 }
 
 .user-info {
@@ -160,6 +278,11 @@ body {
   gap: 8px;
   color: #6b7280;
   font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.App.dark-mode .user-name {
+  color: #9ca3af;
 }
 
 .logout-button {
@@ -176,9 +299,20 @@ body {
   transition: all 0.2s ease;
 }
 
+.App.dark-mode .logout-button {
+  background: #374151;
+  border-color: #4b5563;
+  color: #d1d5db;
+}
+
 .logout-button:hover {
   background: #e5e7eb;
   color: #374151;
+}
+
+.App.dark-mode .logout-button:hover {
+  background: #4b5563;
+  color: #f9fafb;
 }
 
 .chat-messages {
@@ -189,6 +323,11 @@ body {
   max-width: 800px;
   margin: 0 auto;
   width: 100%;
+  transition: background-color 0.3s ease;
+}
+
+.App.dark-mode .chat-messages {
+  background: #111827;
 }
 
 .message {
@@ -217,7 +356,7 @@ body {
   flex-shrink: 0;
 }
 
-.Varuna-avatar {
+.claude-avatar {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
@@ -234,6 +373,12 @@ body {
   border-radius: 16px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   position: relative;
+  transition: all 0.3s ease;
+}
+
+.App.dark-mode .message-bubble {
+  background: #1f2937;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .user-message .message-bubble {
@@ -245,6 +390,16 @@ body {
   margin: 0;
   line-height: 1.5;
   font-size: 15px;
+  color: #1f2937;
+  transition: color 0.3s ease;
+}
+
+.App.dark-mode .message-bubble p {
+  color: #f9fafb;
+}
+
+.user-message .message-bubble p {
+  color: white;
 }
 
 .timestamp {
@@ -271,6 +426,12 @@ body {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   display: flex;
   gap: 4px;
+  transition: all 0.3s ease;
+}
+
+.App.dark-mode .typing-dots {
+  background: #1f2937;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .typing-dots span {
@@ -279,6 +440,10 @@ body {
   background: #9ca3af;
   border-radius: 50%;
   animation: typing 1.4s infinite;
+}
+
+.App.dark-mode .typing-dots span {
+  background: #6b7280;
 }
 
 .typing-dots span:nth-child(2) {
@@ -304,6 +469,12 @@ body {
   background: white;
   border-top: 1px solid #e5e7eb;
   padding: 20px 24px;
+  transition: all 0.3s ease;
+}
+
+.App.dark-mode .chat-input-form {
+  background: #1f2937;
+  border-top-color: #374151;
 }
 
 .input-container {
@@ -316,12 +487,21 @@ body {
   border: 2px solid #e5e7eb;
   border-radius: 24px;
   padding: 4px;
-  transition: border-color 0.2s ease;
+  transition: all 0.2s ease;
+}
+
+.App.dark-mode .input-container {
+  background: #374151;
+  border-color: #4b5563;
 }
 
 .input-container:focus-within {
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.App.dark-mode .input-container:focus-within {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
 }
 
 .attach-button {
@@ -337,9 +517,18 @@ body {
   transition: all 0.2s ease;
 }
 
+.App.dark-mode .attach-button {
+  color: #9ca3af;
+}
+
 .attach-button:hover {
   background: #e5e7eb;
   color: #374151;
+}
+
+.App.dark-mode .attach-button:hover {
+  background: #4b5563;
+  color: #f9fafb;
 }
 
 .chat-input {
@@ -350,6 +539,20 @@ body {
   font-size: 16px;
   outline: none;
   resize: none;
+  color: #1f2937;
+  transition: color 0.3s ease;
+}
+
+.App.dark-mode .chat-input {
+  color: #f9fafb;
+}
+
+.chat-input::placeholder {
+  color: #9ca3af;
+}
+
+.App.dark-mode .chat-input::placeholder {
+  color: #6b7280;
 }
 
 .send-button {
@@ -374,6 +577,80 @@ body {
   background: #d1d5db;
   cursor: not-allowed;
   transform: none;
+}
+
+.App.dark-mode .send-button:disabled {
+  background: #4b5563;
+}
+
+/* Scrollbar Styling */
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.App.dark-mode .chat-messages::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.App.dark-mode .chat-messages::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.App.dark-mode .chat-messages::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Selection Colors */
+::selection {
+  background: #667eea;
+  color: white;
+}
+
+.App.dark-mode ::selection {
+  background: #667eea;
+  color: white;
+}
+
+/* Focus Styles */
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Loading States */
+.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message {
+  animation: fadeIn 0.3s ease-out;
 }
 
 /* Responsive Design */
@@ -405,5 +682,36 @@ body {
   
   .user-name {
     display: none;
+  }
+  
+  .dark-mode-toggle {
+    top: 15px;
+    right: 15px;
+    width: 45px;
+    height: 45px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 20px;
+    margin: 16px;
+  }
+  
+  .login-header h1 {
+    font-size: 24px;
+  }
+  
+  .chat-messages {
+    padding: 12px;
+  }
+  
+  .message-bubble {
+    max-width: 90%;
+    padding: 10px 14px;
+  }
+  
+  .input-container {
+    margin: 0 8px;
   }
 }
