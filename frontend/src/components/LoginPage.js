@@ -39,51 +39,51 @@ const LoginPage = ({ onLogin, darkMode, toggleDarkMode }) => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    const newErrors = validateForm();
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    setIsLoading(true);
-    
-    try {
-      const response = await fetch('http://127.0.0.1:8000/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: formData.name, 
-          password: formData.password
-        }),
+  e.preventDefault();
+  const newErrors = validateForm();
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
+  setIsLoading(true);
+  try {
+    const response = await fetch('http://127.0.0.1:8000/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: formData.name,
+        password: formData.password
+      }),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      console.log('Login successful:', data);
+      onLogin({
+        name: data.username,
+        message: data.message
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        console.log('Login successful:', data);
-        onLogin({
-          name: data.username,
-          message: data.message
-        });
-      } else {
-        // Handle login errors
-        setErrors({ 
-          general: data.detail || 'Login failed. Please check your credentials.' 
-        });
+    } else {
+      // Check if status code is 401 and show popup
+      if (response.status === 401) {
+        alert('Login failed');
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      setErrors({ 
-        general: 'Network error. Please try again later.' 
+      
+      // Handle login errors
+      setErrors({
+        general: data.detail || 'Login failed. Please check your credentials.'
       });
-    } finally {
-      setIsLoading(false);
     }
-  };
+  } catch (error) {
+    console.error('Login error:', error);
+    setErrors({
+      general: 'Network error. Please try again later.'
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="login-container">
@@ -105,7 +105,7 @@ const LoginPage = ({ onLogin, darkMode, toggleDarkMode }) => {
           <div className="form-group">
             <label htmlFor="name">
               <User size={18} />
-              Full Name
+              User Name
             </label>
             <input
               type="text"

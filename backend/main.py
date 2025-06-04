@@ -3,22 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Dict
 
-app = FastAPI()
+from sqlalchemy.ext.asyncio import AsyncSession
+from contextlib import asynccontextmanager
+from database.database import engine, AsyncSessionLocal
+from database.models import Base, User
+from database.crud import create_user, authenticate_user
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # React dev server
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# temp storage
-USERS: Dict[str, str] = {
-    "admin": "123",
-    "siddarth":"123"
-}
 
 class LoginRequest(BaseModel):
     username: str
@@ -28,6 +18,26 @@ class LoginResponse(BaseModel):
     message: str
     username: str
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Create tables at startup
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    # No teardown actions needed here
+
+app = FastAPI(lifespan=lifespan)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 @app.post("/login", response_model=LoginResponse)
 async def login(request: LoginRequest):
     """
@@ -35,36 +45,27 @@ async def login(request: LoginRequest):
     """
     username = request.username.strip()
     password = request.password
+
+
+    async with AsyncSessionLocal() as db:
     
-    # Check if username exists
-    if username not in USERS:
-        raise HTTPException(
-            status_code=401, 
-            detail="Invalid username or password"
+        user = await authenticate_user(db, username, password)
+        
+        # Check if username exists
+        if not user:
+            raise HTTPException(
+                status_code=401, 
+                detail="Invalid username or password"
+            )
+        
+        return LoginResponse(
+            message="Login successful",
+            username=username
         )
-    
-    # Check if password matches
-    if USERS[username] != password:
-        raise HTTPException(
-            status_code=401, 
-            detail="Invalid username or password"
-        )
-    
-    return LoginResponse(
-        message="Login successful",
-        username=username
-    )
 
 @app.get("/")
 async def root():
     return {"message": "FastAPI Login Server is running"}
-
-@app.get("/users")
-async def get_users():
-    """
-    Get list of available usernames (for testing purposes)
-    """
-    return {"users": list(USERS.keys())}
 
 if __name__ == "__main__":
     import uvicorn
