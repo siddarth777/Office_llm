@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Send, Paperclip, LogOut, User, Moon, Sun } from 'lucide-react';
+import { Send, Paperclip, LogOut, User, Moon, Sun, Trash2 } from 'lucide-react';
 import ChatMessage from './ChatMessage';
 
 const ChatInterface = ({ user, onLogout, darkMode, toggleDarkMode }) => {
@@ -7,7 +7,7 @@ const ChatInterface = ({ user, onLogout, darkMode, toggleDarkMode }) => {
     {
       id: 1,
       text: `Hello ${user?.name}! I'm V, an AI assistant. How can I help you today?`,
-      sender: 'claude',
+      sender: 'varuna',
       timestamp: new Date()
     }
   ]);
@@ -15,9 +15,24 @@ const ChatInterface = ({ user, onLogout, darkMode, toggleDarkMode }) => {
   const [isTyping, setIsTyping] = useState(false);
   const fileInputRef = useRef(null);
 
-  const handleSendMessage = (e) => {
+  // Initial greeting message
+  const getInitialMessage = () => ({
+    id: 1,
+    text: `Hello ${user?.name}! I'm V, an AI assistant. How can I help you today?`,
+    sender: 'varuna',
+    timestamp: new Date()
+  });
+
+  // Function to convert messages array to string format
+  const messagesToString = (messagesArray) => {
+    return messagesArray.map(msg => {
+      const role = msg.sender === 'user' ? 'User' : 'V';
+      return `${role}: ${msg.text}`;
+    }).join('\n');
+  };
+
+  const handleSendMessage = async (e) => {
     e.preventDefault();
-    
     if (!inputText.trim()) return;
 
     const userMessage = {
@@ -27,21 +42,63 @@ const ChatInterface = ({ user, onLogout, darkMode, toggleDarkMode }) => {
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    // Update messages with the new user message
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
+    
+    // Convert chat history to string
+    const chatHistoryString = messagesToString(updatedMessages);
+    
+    const currentInput = inputText;
     setInputText('');
     setIsTyping(true);
 
-    // Simulate Claude's response
-    setTimeout(() => {
-      const claudeResponse = {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: currentInput,
+          chatHistory: chatHistoryString
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      const apiResponse = {
         id: Date.now() + 1,
-        text: "I understand your message. This is a simulated response from V. In a real implementation, this would connect to the V API to provide intelligent responses.",
-        sender: 'claude',
+        text: data.response || data.message || 'No response received',
+        sender: 'varuna',
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, claudeResponse]);
+
+      setMessages(prev => [...prev, apiResponse]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      
+      const errorResponse = {
+        id: Date.now() + 1,
+        text: 'Sorry, I encountered an error while processing your message. Please try again.',
+        sender: 'varuna',
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
+  };
+
+  const handleClearChat = () => {
+    setMessages([getInitialMessage()]);
+    setInputText('');
+    setIsTyping(false);
   };
 
   const handleFileAttach = () => {
@@ -63,6 +120,13 @@ const ChatInterface = ({ user, onLogout, darkMode, toggleDarkMode }) => {
         <div className="header-content">
           <h1>V Chat</h1>
           <div className="user-info">
+            <button 
+              onClick={handleClearChat}
+              className="clear-chat-button header-toggle"
+              title="Clear chat history"
+            >
+              <Trash2 size={16} />
+            </button>
             <button 
               onClick={toggleDarkMode}
               className="dark-mode-toggle header-toggle"
@@ -89,7 +153,7 @@ const ChatInterface = ({ user, onLogout, darkMode, toggleDarkMode }) => {
         {isTyping && (
           <div className="typing-indicator">
             <div className="typing-message">
-              <div className="avatar claude-avatar">V</div>
+              <div className="avatar varuna-avatar">V</div>
               <div className="typing-dots">
                 <span></span>
                 <span></span>

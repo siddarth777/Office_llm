@@ -4,9 +4,9 @@ const ChatMessage = ({ message }) => {
   const isUser = message.sender === 'user';
   
   return (
-    <div className={`message ${isUser ? 'user-message' : 'claude-message'}`}>
+    <div className={`message ${isUser ? 'user-message' : 'varuna-message'}`}>
       <div className="message-content">
-        <div className={`avatar ${isUser ? 'user-avatar' : 'claude-avatar'}`}>
+        <div className={`avatar ${isUser ? 'user-avatar' : 'varuna-avatar'}`}>
           {isUser ? 'U' : 'V'}
         </div>
         <div className="message-bubble">
