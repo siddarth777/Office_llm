@@ -105,12 +105,64 @@ const ChatInterface = ({ user, onLogout, darkMode, toggleDarkMode }) => {
     fileInputRef.current?.click();
   };
 
-  const handleFileSelect = (e) => {
+  const handleFileSelect = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      console.log('File selected:', file.name);
-      // Here you would handle file upload
-      alert(`File "${file.name}" selected. File upload functionality would be implemented here.`);
+    if (!file) return;
+
+    console.log('File selected:', file.name);
+
+    // Add a file message to the chat
+    const fileMessage = {
+      id: Date.now(),
+      text: `📎 Uploaded file: ${file.name}`,
+      sender: 'user',
+      timestamp: new Date(),
+      isFile: true
+    };
+
+    setMessages(prev => [...prev, fileMessage]);
+    setIsTyping(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('http://127.0.0.1:8000/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      const apiResponse = {
+        id: Date.now() + 1,
+        text: data.response || data.message || 'File uploaded successfully',
+        sender: 'varuna',
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, apiResponse]);
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      
+      const errorResponse = {
+        id: Date.now() + 1,
+        text: 'Sorry, I encountered an error while uploading the file. Please try again.',
+        sender: 'varuna',
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
+      setIsTyping(false);
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
