@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { User, Lock, Moon, Sun } from 'lucide-react';
 
+const BACKEND_PATH='http://192.168.137.98:8000'
+
 const LoginPage = ({ onLogin, darkMode, toggleDarkMode }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -47,7 +49,7 @@ const LoginPage = ({ onLogin, darkMode, toggleDarkMode }) => {
   }
   setIsLoading(true);
   try {
-    const response = await fetch('http://127.0.0.1:8000/login', {
+    const response = await fetch(BACKEND_PATH+'/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
