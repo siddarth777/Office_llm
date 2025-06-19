@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Send, Paperclip, LogOut, User, Moon, Sun, Trash2, Bot, Zap } from 'lucide-react';
+import { Send, Paperclip, LogOut, User, Moon, Sun, Trash2, Bot, Zap, Mic, MicOff } from 'lucide-react';
 import ChatMessage from './ChatMessage';
 
 //http://127.0.0.1:8000
@@ -16,9 +16,16 @@ const ChatInterface = ({ user, onLogout, darkMode, toggleDarkMode }) => {
   ]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [currentModel, setCurrentModel] = useState('model2'); // Default model
+  const [currentModel, setCurrentModel] = useState('model1'); // Default model
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  
+  // Speech recording states
+  const [isRecording, setIsRecording] = useState(false);
+  const [isProcessingAudio, setIsProcessingAudio] = useState(false);
+  
   const fileInputRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   // Model configurations
   const models = {
@@ -64,6 +71,94 @@ const ChatInterface = ({ user, onLogout, darkMode, toggleDarkMode }) => {
       const role = msg.sender === 'user' ? 'User' : 'V';
       return `${role}: ${msg.text}`;
     }).join('\n');
+  };
+
+  // Speech recording functions
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100,
+        }
+      });
+
+      mediaRecorderRef.current = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+
+      audioChunksRef.current = [];
+
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorderRef.current.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm;codecs=opus' });
+        await sendAudioToBackend(audioBlob);
+        
+        // Stop all tracks to release microphone
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorderRef.current.start(1000); // Collect data every second
+      setIsRecording(true);
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      alert('Could not access microphone. Please check your permissions.');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      setIsProcessingAudio(true);
+    }
+  };
+
+  const sendAudioToBackend = async (audioBlob) => {
+    try {
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'recording.webm');
+
+      const response = await fetch(BACKEND_PATH + '/speech-to-text', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Add transcribed text to input box
+      if (data.text) {
+        setInputText(prev => prev + (prev ? ' ' : '') + data.text);
+      } else if (data.transcription) {
+        setInputText(prev => prev + (prev ? ' ' : '') + data.transcription);
+      } else {
+        console.warn('No text received from speech-to-text service');
+      }
+
+    } catch (error) {
+      console.error('Error processing audio:', error);
+      alert('Failed to process audio. Please try again.');
+    } finally {
+      setIsProcessingAudio(false);
+    }
+  };
+
+  const toggleRecording = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
   };
 
   const handleModelSwitch = async (newModel) => {
@@ -367,6 +462,22 @@ const ChatInterface = ({ user, onLogout, darkMode, toggleDarkMode }) => {
             title="Attach file"
           >
             <Paperclip size={20} />
+          </button>
+          
+          <button
+            type="button"
+            onClick={toggleRecording}
+            className={`speech-button ${isRecording ? 'recording' : ''} ${isProcessingAudio ? 'processing' : ''}`}
+            title={isRecording ? 'Stop recording' : isProcessingAudio ? 'Processing audio...' : 'Start voice recording'}
+            disabled={isProcessingAudio}
+          >
+            {isProcessingAudio ? (
+              <div className="processing-spinner">
+                <div className="spinner"></div>
+              </div>
+            ) : 
+              <Mic size={20}/>
+            }
           </button>
           
           <input

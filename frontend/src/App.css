@@ -873,3 +873,75 @@ input:focus-visible {
   color: var(--primary-color, #007bff);
   flex-shrink: 0;
 }
+
+/* Speech button styles */
+.speech-button {
+  padding: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.speech-button:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.speech-button.recording {
+  background-color: rgba(239, 68, 68, 0.1);
+  animation: pulse-recording 1.5s infinite;
+}
+
+.speech-button .recording-icon {
+  color: #ef4444;
+  animation: pulse-icon 1.5s infinite;
+}
+
+@keyframes pulse-recording {
+  0%, 100% {
+    background-color: rgba(239, 68, 68, 0.1);
+  }
+  50% {
+    background-color: rgba(239, 68, 68, 0.2);
+  }
+}
+
+@keyframes pulse-icon {
+  0%, 100% {
+    color: #ef4444;
+    transform: scale(1);
+  }
+  50% {
+    color: #dc2626;
+    transform: scale(1.1);
+  }
+}
+
+.speech-button.processing {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.processing-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

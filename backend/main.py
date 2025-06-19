@@ -23,7 +23,9 @@ import asyncio
 import httpx
 import subprocess
 
-current_model = 'theqtcompany/codellama-7b-qml'
+from faster_whisper import WhisperModel
+
+current_model = 'llama3.1:8b'
 ollama_process = None
 
 async def wait_for_ollama(max_retries=30, delay=1):
@@ -483,6 +485,84 @@ async def upload_file(file: UploadFile = File(...)):
             detail=f"An error occurred while processing the file: {str(e)}"
         )
 
+
+whisper_model = WhisperModel("base", device="cpu", compute_type="int8")
+
+@app.post("/speech-to-text")
+async def speech_to_text(audio: UploadFile = File(...)):
+    temp_webm_path = None
+    temp_wav_path = None
+    
+    try:
+        # Save uploaded WebM file temporarily
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_file:
+            content = await audio.read()
+            temp_file.write(content)
+            temp_webm_path = temp_file.name
+        
+        # Convert WebM to WAV using ffmpeg
+        temp_wav_path = tempfile.mktemp(suffix=".wav")
+        
+        # Convert to WAV format (faster-whisper is more flexible with audio formats)
+        subprocess.run([
+            "ffmpeg", "-i", temp_webm_path,
+            "-ar", "16000", "-ac", "1", "-f", "wav",
+            temp_wav_path
+        ], check=True, capture_output=True, stderr=subprocess.PIPE)
+        
+        # Transcribe audio with faster-whisper
+        segments, info = whisper_model.transcribe(
+            temp_wav_path,
+            beam_size=5,  # Good balance between speed and accuracy
+            language=None,  # Auto-detect language
+            task="transcribe"  # Use "translate" if you want translation to English
+        )
+        
+        # Extract text from segments
+        transcribed_text = ""
+        confidence_scores = []
+        
+        for segment in segments:
+            transcribed_text += segment.text + " "
+            if hasattr(segment, 'avg_logprob'):
+                confidence_scores.append(segment.avg_logprob)
+        
+        # Clean up the text
+        transcribed_text = transcribed_text.strip()
+        
+        # Calculate average confidence if available
+        avg_confidence = sum(confidence_scores) / len(confidence_scores) if confidence_scores else None
+        
+        return JSONResponse(content={
+            "text": transcribed_text,
+            "status": "success"
+        })
+        
+    except subprocess.CalledProcessError as e:
+        error_message = e.stderr.decode() if e.stderr else str(e)
+        return JSONResponse(
+            content={
+                "error": f"Audio conversion failed: {error_message}",
+                "status": "error"
+            },
+            status_code=500
+        )
+    except Exception as e:
+        return JSONResponse(
+            content={
+                "error": f"Failed to process audio: {str(e)}",
+                "status": "error"
+            },
+            status_code=500
+        )
+    finally:
+        # Clean up temporary files
+        if temp_webm_path and os.path.exists(temp_webm_path):
+            os.unlink(temp_webm_path)
+        if temp_wav_path and os.path.exists(temp_wav_path):
+            os.unlink(temp_wav_path)
+
+           
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
